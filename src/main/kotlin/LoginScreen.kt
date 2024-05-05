@@ -68,7 +68,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                             onLoginSuccess()
                         }
                     }, */
-                    onClick = onLoginSuccess, // Всегда успешно переходим на следующий шаг
+                    onClick = onLoginSuccess, // Всегда успешный преход на следующий шаг
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Войти")

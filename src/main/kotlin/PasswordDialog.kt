@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun PasswordDialog(onGenerate: () -> Unit, onManualEntry: () -> Unit) {
-    Dialog(onDismissRequest = { /* Здесь можно обработать закрытие диалога */ }) {
+    Dialog(onDismissRequest = { /* Обработать закрытие диалога */ }) {
         Card(modifier = Modifier.padding(16.dp), elevation = 8.dp) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text("Вы хотите сгенерировать надежный пароль или написать сами?", style = MaterialTheme.typography.body1)
