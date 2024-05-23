@@ -9,6 +9,8 @@ class User(val id: Int,
            var masterPassword: String = "")
 
 fun main() = application {
+    val userService = UserService(MySQLDatabaseConnector())
+
     Window(onCloseRequest = ::exitApplication, title = "Менеджер паролей") {
         var loggedIn by remember { mutableStateOf(false) }
         var actionSelectionDialogVisible by remember { mutableStateOf(false) }
@@ -16,7 +18,8 @@ fun main() = application {
         var generatePassword by remember { mutableStateOf(false) }
 
         if (!loggedIn) {
-            LoginScreen(onLoginSuccess = {
+            LoginScreen(onLogin = { login, password ->
+                val user = userService.login(login, password)
                 loggedIn = true
                 actionSelectionDialogVisible = true  // Показать диалог выбора действия
             })
@@ -49,6 +52,6 @@ fun main() = application {
     }
 
     // Запуск внешнего процесса: проверка сертификата
-    CertificateVerification()
+    //CertificateVerification()
 }
 

@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit) {
+fun LoginScreen(onLogin: (String, String) -> Unit) {
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showErrorDialog by remember { mutableStateOf(false) }
@@ -59,16 +59,9 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                     })
                 )
                 Button(
-                    /* onClick = {
-                        val hashedPassword = PasswordHasher.hashPassword(password)
-                        val userPasswordHash = Database.getUser(login)
-                        if (userPasswordHash == null || hashedPassword != userPasswordHash) {
-                            showErrorDialog = true
-                        } else {
-                            onLoginSuccess()
-                        }
-                    }, */
-                    onClick = onLoginSuccess, // Всегда успешный преход на следующий шаг
+                    onClick = {
+                        onLogin(login, password)
+                    }, // Всегда успешный преход на следующий шаг
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Войти")
