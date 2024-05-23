@@ -21,6 +21,7 @@ dependencies {
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
     implementation("io.github.cdimascio:dotenv-java:3.0.0")
+    implementation("mysql:mysql-connector-java:8.0.33")
 }
 
 compose.desktop {
