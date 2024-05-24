@@ -22,6 +22,9 @@ dependencies {
     implementation(compose.desktop.currentOs)
     implementation("io.github.cdimascio:dotenv-java:3.0.0")
     implementation("mysql:mysql-connector-java:8.0.33")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation("org.xerial:sqlite-jdbc:3.34.0")
+    implementation("org.mindrot:jbcrypt:0.4")
 }
 
 compose.desktop {

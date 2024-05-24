@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
 @Composable
-fun LoginScreen(onLogin: (String, String) -> Unit, onRegister: () -> Unit) {
+fun RegisterScreen(onRegister: (String, String) -> Unit, onBack: () -> Unit) {
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showErrorDialog by remember { mutableStateOf(false) }
@@ -22,12 +22,13 @@ fun LoginScreen(onLogin: (String, String) -> Unit, onRegister: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Введите логин:", style = MaterialTheme.typography.h6)
+                Text("Регистрация", style = MaterialTheme.typography.h6)
                 TextField(
                     value = login,
                     onValueChange = { login = it },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Логин") },
                     colors = TextFieldDefaults.textFieldColors(
                         backgroundColor = Color.Transparent,
                         cursorColor = Color.Black,
@@ -35,13 +36,13 @@ fun LoginScreen(onLogin: (String, String) -> Unit, onRegister: () -> Unit) {
                         unfocusedIndicatorColor = Color.Gray
                     )
                 )
-                Text("Введите мастер-пароль:", style = MaterialTheme.typography.h6)
                 TextField(
                     value = password,
                     onValueChange = { password = it },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = PasswordVisualTransformation(),
+                    label = { Text("Мастер-пароль") },
                     colors = TextFieldDefaults.textFieldColors(
                         backgroundColor = Color.Transparent,
                         cursorColor = Color.Black,
@@ -51,24 +52,22 @@ fun LoginScreen(onLogin: (String, String) -> Unit, onRegister: () -> Unit) {
                 )
                 Button(
                     onClick = {
-                        try {
-                            onLogin(login, password)
-                        } catch (e: Exception) {
-                            errorMessage = e.message ?: "Ошибка входа"
+                        if (login.isNotBlank() && password.isNotBlank()) {
+                            onRegister(login, password)
+                        } else {
+                            errorMessage = "Логин и пароль не могут быть пустыми"
                             showErrorDialog = true
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Войти")
+                    Text("Зарегистрироваться")
                 }
                 Button(
-                    onClick = {
-                        onRegister()
-                    },
+                    onClick = onBack,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Зарегистрироваться")
+                    Text("Назад")
                 }
             }
         }

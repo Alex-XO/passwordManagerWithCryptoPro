@@ -19,8 +19,7 @@ class MySQLDatabaseConnector: PasswordDatabase {
         statement = connection.createStatement()
     }
 
-    fun createNewUser(login: String, masterPasswordHash: String) {
-        val salt = generateSalt()
+    fun createNewUser(login: String, masterPasswordHash: String, salt: ByteArray) {
         val saltAsString = Base64.getEncoder().encodeToString(salt)
         val sqlInsertUser = "INSERT INTO users (login, master_password_hash, salt) VALUES (?, ?, ?)"
 
@@ -30,7 +29,7 @@ class MySQLDatabaseConnector: PasswordDatabase {
         preparedStatement.setString(3, saltAsString)
 
         preparedStatement.executeUpdate()
-        println("Пользователь успешно создан.")
+        println("User created successfully.")
     }
 
     private fun generateSalt(size: Int = 16): ByteArray {
