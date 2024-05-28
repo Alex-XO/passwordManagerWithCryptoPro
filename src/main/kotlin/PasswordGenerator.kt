@@ -13,7 +13,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import kotlin.random.Random
 
 @Composable
-fun PasswordGenerator() {
+fun PasswordGenerator(onGenerateComplete: (String) -> Unit) {
     var password by remember { mutableStateOf(TextFieldValue("")) }
     var length by remember { mutableStateOf(TextFieldValue("12")) }
     val useSpecial = remember { mutableStateOf(false) }
@@ -42,7 +42,9 @@ fun PasswordGenerator() {
                             )
                         }
                         Button(onClick = {
-                            password = TextFieldValue(generatePassword(useSpecial.value, useDigits.value, useUppercase.value, useLowercase.value, length.text.toInt()))
+                            val generatedPassword = generatePassword(useSpecial.value, useDigits.value, useUppercase.value, useLowercase.value, length.text.toInt())
+                            password = TextFieldValue(generatedPassword)
+                            onGenerateComplete(generatedPassword) // Возвращаем сгенерированный пароль
                         }, modifier = Modifier.align(Alignment.End)) {
                             Text("Сгенерировать")
                         }

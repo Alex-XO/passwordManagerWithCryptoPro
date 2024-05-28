@@ -1,9 +1,18 @@
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
+import java.io.File
 
-fun CertificateVerification() {
-    val command = listOf("cmd.exe", "/c", "D:\\crypto\\cryptcp.x64", "-encr", "-dn", "Андреев Андрей Андреевич", "D:\\crypto\\testAnd.txt", "D:\\crypto\\testAnd2.msg")
+fun EncryptPasswordWhisCryptoPro(password: String): String {
+    // Создаем временный файл для пароля
+    val inputFile = File.createTempFile("password", ".txt")
+    inputFile.writeText(password)
+
+    // Создаем временный файл для зашифрованного пароля
+    val outputFile = File.createTempFile("encryptedPassword", ".msg")
+
+    // Укажите путь к вашему скрипту и необходимые параметры
+    val command = listOf("cmd.exe", "/c", "D:\\crypto\\cryptcp.x64", "-encr", "-dn", "Андреев Андрей Андреевич", inputFile.absolutePath, outputFile.absolutePath)
     val processBuilder = ProcessBuilder(command)
     processBuilder.redirectErrorStream(true)
 
@@ -29,4 +38,13 @@ fun CertificateVerification() {
 
     val exitCode = process.waitFor()
     println("Процесс завершён с кодом: $exitCode")
+
+    // Читаем зашифрованное содержимое
+    val encryptedPassword = outputFile.readText()
+
+    // Удаляем временные файлы
+    inputFile.delete()
+    outputFile.delete()
+
+    return encryptedPassword
 }

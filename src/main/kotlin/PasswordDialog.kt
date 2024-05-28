@@ -16,7 +16,7 @@ fun PasswordDialog(onGenerate: () -> Unit, onManualEntry: () -> Unit) {
                         Text("Сгенерировать")
                     }
                     Button(onClick = onManualEntry) {
-                        Text("Написать самому")
+                        Text("Написать вручную")
                     }
                 }
             }

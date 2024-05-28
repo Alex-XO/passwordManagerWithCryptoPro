@@ -17,6 +17,10 @@ class MySQLDatabaseConnector: PasswordDatabase {
 
         connection = DriverManager.getConnection(dbURL, dbUser, dbPassword)
         statement = connection.createStatement()
+
+        // Инициализируем таблицы и обновляем столбец 'password'
+        initTables()
+        updatePasswordColumn()
     }
 
     fun createNewUser(login: String, masterPasswordHash: String, salt: ByteArray) {
@@ -32,11 +36,10 @@ class MySQLDatabaseConnector: PasswordDatabase {
         println("User created successfully.")
     }
 
-    private fun generateSalt(size: Int = 16): ByteArray {
-        val random = SecureRandom()
-        val salt = ByteArray(size)
-        random.nextBytes(salt)
-        return salt
+    fun updatePasswordColumn() {
+        val sql = "ALTER TABLE passwords MODIFY COLUMN password LONGTEXT;"
+        statement.executeUpdate(sql)
+        println("Столбец 'password' обновлен до LONGTEXT.")
     }
 
     fun initTables() {
@@ -56,7 +59,7 @@ class MySQLDatabaseConnector: PasswordDatabase {
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT NOT NULL,
                 service_name VARCHAR(255) NOT NULL,
-                password VARCHAR(255) NOT NULL,
+                password LONGTEXT NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """.trimIndent()
@@ -103,5 +106,33 @@ class MySQLDatabaseConnector: PasswordDatabase {
             return password
         }
         return null
+    }
+
+    fun getUserById(userId: Int): User? {
+        val sql = "SELECT id, login, master_password_hash, salt FROM users WHERE id = ?"
+        val preparedStatement = connection.prepareStatement(sql)
+        preparedStatement.setInt(1, userId)
+        val result = preparedStatement.executeQuery()
+        if (result.next()) {
+            val masterPasswordHash = result.getString("master_password_hash")
+            val id = result.getInt("id")
+            val login = result.getString("login")
+            val salt = result.getString("salt")
+            val saltByteArray = Base64.getDecoder().decode(salt)
+            return User(id, login, masterPasswordHash, saltByteArray)
+        }
+        return null
+    }
+
+    fun getServices(userId: Int): List<String> {
+        val services = mutableListOf<String>()
+        val sql = "SELECT service_name FROM passwords WHERE user_id = ?"
+        val preparedStatement = connection.prepareStatement(sql)
+        preparedStatement.setInt(1, userId)
+        val result = preparedStatement.executeQuery()
+        while (result.next()) {
+            services.add(result.getString("service_name"))
+        }
+        return services
     }
 }
