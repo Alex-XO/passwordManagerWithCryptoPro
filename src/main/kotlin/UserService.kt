@@ -1,54 +1,61 @@
 import java.security.SecureRandom
+import java.util.Base64
 
 class UserService(
     private val dataBase: MySQLDatabaseConnector
 ) {
-    fun login(username: String, password: String): User? {
+    fun login(username: String, password: String, flashDriveId: String): User? {
         val user = dataBase.getUser(username)
+        println("User found: $user")
         return if (user != null) {
-            val hashedPassword = PasswordHasher.hashPassword(password + user.salt.decodeToString())
+            val hashedPassword = PasswordHasher.hashPassword(password + user.salt)
             println("Input password hash: $hashedPassword")
             println("Stored password hash: ${user.masterPasswordHash}")
-            if (user.masterPasswordHash == hashedPassword) {
+            println("Input flash drive ID: $flashDriveId")
+            println("Stored flash drive ID: ${user.flashDriveId}")
+            if (user.masterPasswordHash == hashedPassword && user.flashDriveId == flashDriveId) {
                 user
             } else {
-                throw Exception("Wrong password")
+                throw Exception("Wrong password or flash drive ID does not match")
             }
         } else {
             throw Exception("User not found")
         }
     }
 
-    fun register(login: String, password: String): Boolean {
+    fun register(username: String, password: String, flashDriveId: String): Boolean {
+        val salt = generateSalt()
+        val hashedPassword = PasswordHasher.hashPassword(password + salt)
         return try {
-            val salt = generateSalt()
-            val hashedPassword = PasswordHasher.hashPassword(password + salt.decodeToString())
-            println("Registering user with hash: $hashedPassword")
-            dataBase.createNewUser(login, hashedPassword, salt)
+            dataBase.createNewUser(username, hashedPassword, salt, flashDriveId)
             true
         } catch (e: Exception) {
-            e.printStackTrace()
+            println("Registration error: ${e.message}")
             false
         }
     }
 
-    fun addService(userId: Int, serviceName: String, encryptedPassword: String) {
-        dataBase.addService(userId, serviceName, encryptedPassword)
+    fun addService(flashDriveId: String, serviceName: String, encryptedPassword: String) {
+        dataBase.addService(flashDriveId, serviceName, encryptedPassword)
     }
 
-    fun getServices(userId: Int): List<String> {
-        return dataBase.getServices(userId)
+    fun getPassword(flashDriveId: String, serviceName: String): String? {
+        return dataBase.getPassword(flashDriveId, serviceName)
     }
 
-    fun decryptPassword(userId: Int, serviceName: String, masterPassword: String): String {
-        val encryptedPassword = dataBase.getPassword(userId, serviceName) ?: return "Пароль не найден"
-        return DecryptPasswordWithCryptoPro(encryptedPassword, masterPassword)
+    fun getServices(flashDriveId: String): List<String> {
+        return dataBase.getServices(flashDriveId)
     }
 
-    private fun generateSalt(size: Int = 16): ByteArray {
+    fun decryptPassword(flashDriveId: String, serviceName: String): String {
+        val encryptedPassword = getPassword(flashDriveId, serviceName) ?: return "Пароль не найден"
+        return DecryptPasswordWithCryptoPro(encryptedPassword, "")
+    }
+
+    private fun generateSalt(size: Int = 16): String {
         val random = SecureRandom()
         val salt = ByteArray(size)
         random.nextBytes(salt)
-        return salt
+        return Base64.getEncoder().encodeToString(salt)
     }
 }

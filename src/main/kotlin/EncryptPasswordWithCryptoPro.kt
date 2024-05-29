@@ -3,7 +3,7 @@ import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.io.File
 
-fun EncryptPasswordWhisCryptoPro(password: String): String {
+fun EncryptPasswordWithCryptoPro(password: String): String {
     // Создаем временный файл для пароля
     val inputFile = File.createTempFile("password", ".txt")
     inputFile.writeText(password)

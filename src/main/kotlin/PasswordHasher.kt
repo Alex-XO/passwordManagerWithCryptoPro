@@ -1,6 +1,5 @@
 import java.security.MessageDigest
 
-
 object PasswordHasher {
     fun hashPassword(password: String): String {
         val digest = MessageDigest.getInstance("SHA3-256")

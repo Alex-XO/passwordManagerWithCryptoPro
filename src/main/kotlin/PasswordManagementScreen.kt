@@ -7,14 +7,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
 @Composable
-fun PasswordManagementScreen(
-    onAddService: (String, String) -> Unit,
-    onGeneratePassword: (String) -> Unit,
-    onEnterPasswordManually: (String) -> Unit
-) {
+fun PasswordManagementScreen(onAddService: (String, String) -> Unit, onGeneratePassword: (String) -> Unit, onEnterPasswordManually: (String) -> Unit) {
     var serviceName by remember { mutableStateOf("") }
     var showPasswordDialog by remember { mutableStateOf(false) }
-    val maxWidth = 360.dp  // Максимальная ширина для элементов
+    val maxWidth = 360.dp
 
     Dialog(onDismissRequest = { /* Обработка закрытия диалога */ }) {
         Card(modifier = Modifier.padding(16.dp).width(maxWidth), elevation = 8.dp) {
@@ -28,7 +24,7 @@ fun PasswordManagementScreen(
                     value = serviceName,
                     onValueChange = { serviceName = it },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()  // Используем всю доступную ширину карточки
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Button(
                     onClick = { showPasswordDialog = true },

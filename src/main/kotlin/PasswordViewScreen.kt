@@ -1,18 +1,24 @@
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 
 @Composable
-fun PasswordViewScreen(userId: Int, userService: UserService, masterPassword: String, onBack: () -> Unit) {
-    val services by remember { mutableStateOf(userService.getServices(userId)) }
+fun PasswordViewScreen(
+    userId: String,
+    userService: UserService,
+    masterPassword: String,
+    onBack: () -> Unit
+) {
     var selectedService by remember { mutableStateOf<String?>(null) }
-    var decryptedPassword by remember { mutableStateOf("") }
+    var decryptedPassword by remember { mutableStateOf<String?>(null) }
     var showError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    val services = userService.getServices(userId)
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -20,46 +26,49 @@ fun PasswordViewScreen(userId: Int, userService: UserService, masterPassword: St
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Выберите сервис для просмотра пароля", style = MaterialTheme.typography.h6)
+        services.forEach { service ->
+            Button(
+                onClick = { selectedService = service },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(service)
+            }
+        }
 
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(services) { service ->
+        selectedService?.let { service ->
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text("Сервис: $service", style = MaterialTheme.typography.h6)
                 Button(
                     onClick = {
-                        selectedService = service
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                ) {
-                    Text(service)
-                }
-            }
-        }
-
-        selectedService?.let {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Сервис: $it", style = MaterialTheme.typography.h6)
-                Button(onClick = {
-                    try {
-                        decryptedPassword = userService.decryptPassword(userId, it, masterPassword)
-                        showError = false
-                    } catch (e: Exception) {
-                        decryptedPassword = ""
-                        showError = true
+                        try {
+                            val encryptedPassword = userService.getPassword(userId, service)
+                            if (encryptedPassword != null) {
+                                decryptedPassword = DecryptPasswordWithCryptoPro(encryptedPassword, masterPassword)
+                            } else {
+                                errorMessage = "Пароль не найден"
+                                showError = true
+                            }
+                        } catch (e: Exception) {
+                            errorMessage = "Ошибка расшифровки: ${e.message}"
+                            showError = true
+                        }
                     }
-                }) {
+                ) {
                     Text("Расшифровать")
                 }
+                decryptedPassword?.let {
+                    Text("Пароль: $it", style = MaterialTheme.typography.h6)
+                }
                 if (showError) {
-                    Text("Ошибка расшифровки.", color = MaterialTheme.colors.error)
-                } else if (decryptedPassword.isNotEmpty()) {
-                    Text("Пароль: $decryptedPassword", style = MaterialTheme.typography.body1)
+                    Text(errorMessage, color = Color.Red)
+                }
+                Button(onClick = onBack) {
+                    Text("Назад")
                 }
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = onBack) {
-            Text("Назад")
         }
     }
 }

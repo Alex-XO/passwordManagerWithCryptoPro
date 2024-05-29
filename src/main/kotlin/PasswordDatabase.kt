@@ -1,4 +1,5 @@
 interface PasswordDatabase {
-    fun addService(userId: Int, serviceName: String, encryptedPassword: String)
-    fun getPassword(userId: Int, serviceName: String): String?
+    fun addService(userId: String, serviceName: String, encryptedPassword: String)
+    fun getPassword(userId: String, serviceName: String): String?
+    fun getServices(userId: String): List<String>
 }

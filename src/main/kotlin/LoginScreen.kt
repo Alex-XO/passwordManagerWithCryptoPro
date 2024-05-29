@@ -51,10 +51,10 @@ fun LoginScreen(onLogin: (String, String) -> Unit, onRegister: () -> Unit) {
                 )
                 Button(
                     onClick = {
-                        try {
+                        if (login.isNotBlank() && password.isNotBlank()) {
                             onLogin(login, password)
-                        } catch (e: Exception) {
-                            errorMessage = e.message ?: "Ошибка входа"
+                        } else {
+                            errorMessage = "Логин и пароль не могут быть пустыми"
                             showErrorDialog = true
                         }
                     },
@@ -63,9 +63,7 @@ fun LoginScreen(onLogin: (String, String) -> Unit, onRegister: () -> Unit) {
                     Text("Войти")
                 }
                 Button(
-                    onClick = {
-                        onRegister()
-                    },
+                    onClick = onRegister,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Зарегистрироваться")

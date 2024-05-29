@@ -18,7 +18,7 @@ fun main() = application {
     var currentScreen by remember { mutableStateOf(ScreenType.LOGIN) }
     var serviceName by remember { mutableStateOf("") }
     var servicePassword by remember { mutableStateOf("") }
-    var userId by remember { mutableStateOf(0) }
+    var flashDriveId by remember { mutableStateOf("") }
     var masterPassword by remember { mutableStateOf("") }
 
     Window(onCloseRequest = ::exitApplication, title = "Менеджер паролей") {
@@ -27,17 +27,23 @@ fun main() = application {
                 LoginScreen(
                     onLogin = { login, password ->
                         try {
-                            val user = userService.login(login, password)
+                            val flashDriveInfo = getFlashDriveInfo()
+                            if (flashDriveInfo == null) {
+                                println("USB Flash Drive not detected")
+                                return@LoginScreen
+                            }
+                            flashDriveId = flashDriveInfo.serialNumber
+
+                            val user = userService.login(login, password, flashDriveId)
                             if (user != null) {
-                                println("Вход выполнен успешно")
-                                userId = user.id
+                                println("Login successful")
                                 masterPassword = password
                                 currentScreen = ScreenType.ACTION_SELECTION
                             } else {
-                                println("Пользователь не найден")
+                                println("User not found")
                             }
                         } catch (e: Exception) {
-                            println("Ошибка входа: ${e.message}")
+                            println("Login error: ${e.message}")
                         }
                     },
                     onRegister = {
@@ -48,12 +54,19 @@ fun main() = application {
             ScreenType.REGISTER -> {
                 RegisterScreen(
                     onRegister = { login, password ->
-                        val success = userService.register(login, password)
+                        val flashDriveInfo = getFlashDriveInfo()
+                        if (flashDriveInfo == null) {
+                            println("USB Flash Drive not detected")
+                            return@RegisterScreen
+                        }
+                        flashDriveId = flashDriveInfo.serialNumber
+
+                        val success = userService.register(login, password, flashDriveId)
                         if (success) {
-                            println("Регистрация успешна")
+                            println("Registration successful")
                             currentScreen = ScreenType.LOGIN
                         } else {
-                            println("Ошибка регистрации")
+                            println("Registration error")
                         }
                     },
                     onBack = {
@@ -62,7 +75,7 @@ fun main() = application {
                 )
             }
             ScreenType.ACTION_SELECTION -> {
-                println("Переход в ACTION_SELECTION")
+                println("Switching to ACTION_SELECTION")
                 ActionSelectionDialog(
                     onAddNewService = {
                         currentScreen = ScreenType.ADD_SERVICE
@@ -75,9 +88,9 @@ fun main() = application {
             ScreenType.ADD_SERVICE -> {
                 PasswordManagementScreen(
                     onAddService = { service, password ->
-                        val encryptedPassword = EncryptPasswordWhisCryptoPro(password)
-                        userService.addService(userId, service, encryptedPassword)
-                        println("Сервис $service добавлен с зашифрованным паролем")
+                        val encryptedPassword = EncryptPasswordWithCryptoPro(password)
+                        userService.addService(flashDriveId, service, encryptedPassword)
+                        println("Service $service added with encrypted password")
                         currentScreen = ScreenType.ACTION_SELECTION
                     },
                     onGeneratePassword = {
@@ -92,24 +105,29 @@ fun main() = application {
             }
             ScreenType.GENERATE_PASSWORD -> {
                 PasswordGenerator(onGenerateComplete = { generatedPassword ->
-                    println("Сгенерированный пароль: $generatedPassword")
-                    val encryptedPassword = EncryptPasswordWhisCryptoPro(generatedPassword)
-                    userService.addService(userId, serviceName, encryptedPassword)
+                    println("Generated password: $generatedPassword")
+                    val encryptedPassword = EncryptPasswordWithCryptoPro(generatedPassword)
+                    userService.addService(flashDriveId, serviceName, encryptedPassword)
                     currentScreen = ScreenType.ACTION_SELECTION
                 })
             }
             ScreenType.MANUAL_PASSWORD_ENTRY -> {
                 ManualPasswordEntryScreen(onPasswordEntered = { enteredPassword ->
-                    println("Введенный пароль: $enteredPassword")
-                    val encryptedPassword = EncryptPasswordWhisCryptoPro(enteredPassword)
-                    userService.addService(userId, serviceName, encryptedPassword)
+                    println("Entered password: $enteredPassword")
+                    val encryptedPassword = EncryptPasswordWithCryptoPro(enteredPassword)
+                    userService.addService(flashDriveId, serviceName, encryptedPassword)
                     currentScreen = ScreenType.ACTION_SELECTION
                 })
             }
             ScreenType.VIEW_PASSWORD -> {
-                PasswordViewScreen(userId = userId, userService = userService, masterPassword = masterPassword, onBack = {
-                    currentScreen = ScreenType.ACTION_SELECTION
-                })
+                PasswordViewScreen(
+                    userId = flashDriveId,
+                    userService = userService,
+                    masterPassword = masterPassword,
+                    onBack = {
+                        currentScreen = ScreenType.ACTION_SELECTION
+                    }
+                )
             }
         }
     }
