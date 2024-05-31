@@ -3,7 +3,7 @@ import com.sun.jna.platform.win32.WinNT.HANDLE
 import com.sun.jna.ptr.IntByReference
 import java.io.File
 
-data class FlashDriveInfo(val driveLetter: String, val serialNumber: String)
+data class FlashDriveInfo(val driveLetter: String, val serialNumber: String, val certificatePath: String?)
 
 fun getFlashDriveInfo(): FlashDriveInfo? {
     val roots = File.listRoots()
@@ -11,9 +11,10 @@ fun getFlashDriveInfo(): FlashDriveInfo? {
         if (isUSB(root)) {
             val driveLetter = root.path
             val volumeSerialNumber = getVolumeSerialNumber(driveLetter)
+            val certificatePath = findCertificateOnFlashDrive(driveLetter)
             if (volumeSerialNumber != null) {
-                return FlashDriveInfo(driveLetter, volumeSerialNumber)
-                println(driveLetter)
+                println("Detected USB flash drive with serial number: $volumeSerialNumber, drive letter: $driveLetter, certificate path: $certificatePath")
+                return FlashDriveInfo(driveLetter, volumeSerialNumber, certificatePath)
             }
         }
     }
@@ -50,4 +51,16 @@ fun getVolumeSerialNumber(driveLetter: String): String? {
     } else {
         null
     }
+}
+
+fun findCertificateOnFlashDrive(driveLetter: String): String? {
+    val root = File(driveLetter)
+    val files = root.listFiles() ?: return null
+
+    for (file in files) {
+        if (file.isFile && (file.extension == "p7b" || file.extension == "cer")) {
+            return file.absolutePath
+        }
+    }
+    return null
 }

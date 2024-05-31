@@ -3,7 +3,7 @@ import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.io.File
 
-fun EncryptPasswordWithCryptoPro(password: String): String {
+fun EncryptPasswordWithCryptoPro(password: String, certificatePath: String): String {
     // Создаем временный файл для пароля
     val inputFile = File.createTempFile("password", ".txt")
     inputFile.writeText(password)
@@ -11,24 +11,18 @@ fun EncryptPasswordWithCryptoPro(password: String): String {
     // Создаем временный файл для зашифрованного пароля
     val outputFile = File.createTempFile("encryptedPassword", ".msg")
 
-    // Укажите путь к вашему скрипту и необходимые параметры
-    val command = listOf("cmd.exe", "/c", "D:\\crypto\\cryptcp.x64", "-encr", "-dn", "Андреев Андрей Андреевич", inputFile.absolutePath, outputFile.absolutePath)
+    // полный путь к сертификату и необходимые параметры
+    val command = listOf("cmd.exe", "/c", "D:\\crypto\\cryptcp.x64", "-encr", "-f", certificatePath, inputFile.absolutePath, outputFile.absolutePath)
     val processBuilder = ProcessBuilder(command)
     processBuilder.redirectErrorStream(true)
 
     val process = processBuilder.start()
-    val writer = OutputStreamWriter(process.outputStream)
     val reader = BufferedReader(InputStreamReader(process.inputStream))
 
     val thread = Thread {
         try {
             reader.lines().forEach { line ->
-                writer.write("Y\n")
-                writer.flush()
-                if (line.contains("Вы хотите использовать этот сертификат (Да[Y], Нет[N], Отмена[C])?")) {
-                    writer.write("Y\n")
-                    writer.flush()
-                }
+                println(line)
             }
         } catch (e: Exception) {
             println("Ошибка при чтении вывода: ${e.message}")

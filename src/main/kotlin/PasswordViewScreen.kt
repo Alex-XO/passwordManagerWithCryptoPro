@@ -11,6 +11,7 @@ fun PasswordViewScreen(
     userId: String,
     userService: UserService,
     masterPassword: String,
+    certificatePath: String,
     onBack: () -> Unit
 ) {
     var selectedService by remember { mutableStateOf<String?>(null) }
@@ -46,7 +47,7 @@ fun PasswordViewScreen(
                         try {
                             val encryptedPassword = userService.getPassword(userId, service)
                             if (encryptedPassword != null) {
-                                decryptedPassword = DecryptPasswordWithCryptoPro(encryptedPassword, masterPassword)
+                                decryptedPassword = DecryptPasswordWithCryptoPro(encryptedPassword, masterPassword, certificatePath)
                             } else {
                                 errorMessage = "Пароль не найден"
                                 showError = true

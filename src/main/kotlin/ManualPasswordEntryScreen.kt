@@ -7,18 +7,18 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ManualPasswordEntryScreen(onPasswordEntered: (String) -> Unit) {
+fun ManualPasswordEntryScreen(
+    onPasswordEntered: (String) -> Unit,
+    onBack: () -> Unit
+) {
     var password by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Введите пароль вручную", style = MaterialTheme.typography.h6)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         TextField(
             value = password,
             onValueChange = { password = it },
@@ -26,13 +26,16 @@ fun ManualPasswordEntryScreen(onPasswordEntered: (String) -> Unit) {
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = {
-            onPasswordEntered(password)
-        }) {
-            Text("Завершить")
+        Button(
+            onClick = {
+                onPasswordEntered(password)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Сохранить пароль")
+        }
+        Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+            Text("Назад")
         }
     }
 }

@@ -20,6 +20,7 @@ fun main() = application {
     var servicePassword by remember { mutableStateOf("") }
     var flashDriveId by remember { mutableStateOf("") }
     var masterPassword by remember { mutableStateOf("") }
+    var certificatePath by remember { mutableStateOf("") }
 
     Window(onCloseRequest = ::exitApplication, title = "Менеджер паролей") {
         when (currentScreen) {
@@ -33,6 +34,7 @@ fun main() = application {
                                 return@LoginScreen
                             }
                             flashDriveId = flashDriveInfo.serialNumber
+                            certificatePath = flashDriveInfo.certificatePath ?: return@LoginScreen.apply { println("Certificate not found on USB flash drive") }
 
                             val user = userService.login(login, password, flashDriveId)
                             if (user != null) {
@@ -60,11 +62,14 @@ fun main() = application {
                             return@RegisterScreen
                         }
                         flashDriveId = flashDriveInfo.serialNumber
+                        certificatePath = flashDriveInfo.certificatePath ?: return@RegisterScreen.apply { println("Certificate not found on USB flash drive") }
 
                         val success = userService.register(login, password, flashDriveId)
                         if (success) {
                             println("Registration successful")
-                            currentScreen = ScreenType.LOGIN
+                            // Сразу вход после успешной регистрации
+                            masterPassword = password
+                            currentScreen = ScreenType.ACTION_SELECTION
                         } else {
                             println("Registration error")
                         }
@@ -88,7 +93,7 @@ fun main() = application {
             ScreenType.ADD_SERVICE -> {
                 PasswordManagementScreen(
                     onAddService = { service, password ->
-                        val encryptedPassword = EncryptPasswordWithCryptoPro(password)
+                        val encryptedPassword = EncryptPasswordWithCryptoPro(password, certificatePath)
                         userService.addService(flashDriveId, service, encryptedPassword)
                         println("Service $service added with encrypted password")
                         currentScreen = ScreenType.ACTION_SELECTION
@@ -104,26 +109,38 @@ fun main() = application {
                 )
             }
             ScreenType.GENERATE_PASSWORD -> {
-                PasswordGenerator(onGenerateComplete = { generatedPassword ->
-                    println("Generated password: $generatedPassword")
-                    val encryptedPassword = EncryptPasswordWithCryptoPro(generatedPassword)
-                    userService.addService(flashDriveId, serviceName, encryptedPassword)
-                    currentScreen = ScreenType.ACTION_SELECTION
-                })
+                PasswordGenerator(
+                    onGenerateComplete = { generatedPassword ->
+                        println("Generated password: $generatedPassword")
+                        val encryptedPassword = EncryptPasswordWithCryptoPro(generatedPassword, certificatePath)
+                        userService.addService(flashDriveId, serviceName, encryptedPassword)
+                        currentScreen = ScreenType.ACTION_SELECTION
+                    },
+                    onBack = {
+                        currentScreen = ScreenType.ADD_SERVICE
+                    }
+                )
             }
             ScreenType.MANUAL_PASSWORD_ENTRY -> {
-                ManualPasswordEntryScreen(onPasswordEntered = { enteredPassword ->
-                    println("Entered password: $enteredPassword")
-                    val encryptedPassword = EncryptPasswordWithCryptoPro(enteredPassword)
-                    userService.addService(flashDriveId, serviceName, encryptedPassword)
-                    currentScreen = ScreenType.ACTION_SELECTION
-                })
+                ManualPasswordEntryScreen(
+                    onPasswordEntered = { enteredPassword ->
+                        println("Entered password: $enteredPassword")
+                        val encryptedPassword = EncryptPasswordWithCryptoPro(enteredPassword, certificatePath)
+                        userService.addService(flashDriveId, serviceName, encryptedPassword)
+                        currentScreen = ScreenType.ACTION_SELECTION
+                    },
+                    onBack = {
+                        currentScreen = ScreenType.ADD_SERVICE
+                    }
+                )
             }
+
             ScreenType.VIEW_PASSWORD -> {
                 PasswordViewScreen(
                     userId = flashDriveId,
                     userService = userService,
                     masterPassword = masterPassword,
+                    certificatePath = certificatePath,
                     onBack = {
                         currentScreen = ScreenType.ACTION_SELECTION
                     }

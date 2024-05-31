@@ -19,7 +19,7 @@ class MySQLDatabaseConnector : PasswordDatabase {
         statement = connection.createStatement()
     }
 
-    fun createNewUser(login: String, masterPasswordHash: String, salt: String, flashDriveId: String) {
+    override fun createNewUser(login: String, masterPasswordHash: String, salt: String, flashDriveId: String): Boolean {
         val sqlInsertUser = "INSERT INTO users (login, master_password_hash, salt, flash_drive_id) VALUES (?, ?, ?, ?)"
 
         val preparedStatement = connection.prepareStatement(sqlInsertUser)
@@ -29,34 +29,26 @@ class MySQLDatabaseConnector : PasswordDatabase {
         preparedStatement.setString(4, flashDriveId)
 
         preparedStatement.executeUpdate()
-        println("User created successfully.")
+        println("User created successfully: login = $login, flashDriveId = $flashDriveId")
+        return true
     }
 
-    fun initTables() {
-        val sql = """
-            CREATE TABLE IF NOT EXISTS users (
-                login TEXT NOT NULL,
-                master_password_hash TEXT NOT NULL,
-                salt TEXT NOT NULL,
-                flash_drive_id VARCHAR(255) NOT NULL PRIMARY KEY
-            )
-        """.trimIndent()
-
-        statement.execute(sql)
-
-        val tableSQL = """
-            CREATE TABLE IF NOT EXISTS passwords (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                flash_drive_id VARCHAR(255) NOT NULL,
-                service_name VARCHAR(255) NOT NULL,
-                password VARCHAR(255) NOT NULL,
-                FOREIGN KEY (flash_drive_id) REFERENCES users(flash_drive_id)
-            )
-        """.trimIndent()
-
-        statement.execute(tableSQL)
-        println("Таблица успешно создана или уже существует.")
+    override fun getUser(login: String): User? {
+        val sql = "SELECT login, master_password_hash, salt, flash_drive_id FROM users WHERE login = ?"
+        val preparedStatement = connection.prepareStatement(sql)
+        preparedStatement.setString(1, login)
+        val result = preparedStatement.executeQuery()
+        if (result.next()) {
+            val masterPasswordHash = result.getString("master_password_hash")
+            val login = result.getString("login")
+            val salt = result.getString("salt")
+            val flashDriveId = result.getString("flash_drive_id")
+            println("Retrieved user: login = $login, flashDriveId = $flashDriveId")
+            return User(login, masterPasswordHash, salt, flashDriveId)
+        }
+        return null
     }
+
 
     override fun addService(flashDriveId: String, serviceName: String, encryptedPassword: String) {
         val sqlInsertService = "INSERT INTO passwords (flash_drive_id, service_name, password) VALUES (?, ?, ?)"
@@ -66,7 +58,7 @@ class MySQLDatabaseConnector : PasswordDatabase {
         preparedStatement.setString(3, encryptedPassword)
 
         preparedStatement.executeUpdate()
-        println("Сервис сохранен в базу данных.")
+        println("Service added: flashDriveId = $flashDriveId, serviceName = $serviceName")
     }
 
     override fun getPassword(flashDriveId: String, serviceName: String): String? {
@@ -91,20 +83,5 @@ class MySQLDatabaseConnector : PasswordDatabase {
             services.add(result.getString("service_name"))
         }
         return services
-    }
-
-    fun getUser(login: String): User? {
-        val sql = "SELECT login, master_password_hash, salt, flash_drive_id FROM users WHERE login = ?"
-        val preparedStatement = connection.prepareStatement(sql)
-        preparedStatement.setString(1, login)
-        val result = preparedStatement.executeQuery()
-        if (result.next()) {
-            val masterPasswordHash = result.getString("master_password_hash")
-            val login = result.getString("login")
-            val salt = result.getString("salt")
-            val flashDriveId = result.getString("flash_drive_id")
-            return User(login, masterPasswordHash, salt, flashDriveId)
-        }
-        return null
     }
 }

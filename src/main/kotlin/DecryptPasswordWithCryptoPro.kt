@@ -3,7 +3,7 @@ import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.io.File
 
-fun DecryptPasswordWithCryptoPro(encryptedPassword: String, masterPassword: String): String {
+fun DecryptPasswordWithCryptoPro(encryptedPassword: String, masterPassword: String, certificatePath: String): String {
     // Создаем временный файл для зашифрованного пароля
     val encryptedFile = File.createTempFile("encryptedPassword", ".msg")
     encryptedFile.writeText(encryptedPassword)
@@ -11,9 +11,8 @@ fun DecryptPasswordWithCryptoPro(encryptedPassword: String, masterPassword: Stri
     // Создаем временный файл для расшифрованного пароля
     val decryptedFile = File.createTempFile("decryptedPassword", ".txt")
 
-    // Укажите путь к вашему скрипту и необходимые параметры
-    val command = listOf("cmd.exe", "/c", "D:\\crypto\\cryptcp.x64", "-decr", "-dn", "Андреев Андрей Андреевич", "-pin", masterPassword, encryptedFile.absolutePath, decryptedFile.absolutePath)
-    print(masterPassword)
+    // Укажите полный путь к сертификату и необходимые параметры
+    val command = listOf("cmd.exe", "/c", "D:\\crypto\\cryptcp.x64", "-decr", "-f", certificatePath, "-pin", masterPassword, encryptedFile.absolutePath, decryptedFile.absolutePath)
     val processBuilder = ProcessBuilder(command)
     processBuilder.redirectErrorStream(true)
 
