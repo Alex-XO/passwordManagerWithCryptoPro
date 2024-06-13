@@ -31,9 +31,9 @@ fun RegisterScreen(onRegister: (String, String) -> Unit, onBack: () -> Unit) {
                     label = { Text("Логин") },
                     colors = TextFieldDefaults.textFieldColors(
                         backgroundColor = Color.Transparent,
-                        cursorColor = Color.Black,
+                        cursorColor = MaterialTheme.colors.primary,
                         focusedIndicatorColor = MaterialTheme.colors.primary,
-                        unfocusedIndicatorColor = Color.Gray
+                        unfocusedIndicatorColor = MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
                     )
                 )
                 TextField(
@@ -45,9 +45,9 @@ fun RegisterScreen(onRegister: (String, String) -> Unit, onBack: () -> Unit) {
                     label = { Text("Мастер-пароль") },
                     colors = TextFieldDefaults.textFieldColors(
                         backgroundColor = Color.Transparent,
-                        cursorColor = Color.Black,
+                        cursorColor = MaterialTheme.colors.primary,
                         focusedIndicatorColor = MaterialTheme.colors.primary,
-                        unfocusedIndicatorColor = Color.Gray
+                        unfocusedIndicatorColor = MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
                     )
                 )
                 Button(
