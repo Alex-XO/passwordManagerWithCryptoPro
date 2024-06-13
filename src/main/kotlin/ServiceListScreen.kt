@@ -27,6 +27,11 @@ fun ServiceListScreen() {
     var showDialog by remember { mutableStateOf(false) }
     var currentService by remember { mutableStateOf<Service?>(null) }
     var isEditing by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredServices = services.filter {
+        it.name.contains(searchQuery, ignoreCase = true)
+    }
 
     Box(
         modifier = Modifier
@@ -34,7 +39,50 @@ fun ServiceListScreen() {
             .background(Color(0xFFF0F0F0))
             .padding(16.dp)
     ) {
-        if (services.isEmpty()) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Список сервисов",
+                style = MaterialTheme.typography.h5,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            TextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Поиск по имени сервиса") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = Color.Transparent,
+                    cursorColor = MaterialTheme.colors.primary,
+                    focusedIndicatorColor = MaterialTheme.colors.primary,
+                    unfocusedIndicatorColor = MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
+                )
+            )
+            LazyColumn(
+                modifier = Modifier.weight(1f)
+            ) {
+                items(filteredServices) { service ->
+                    ServiceItem(
+                        service = service,
+                        onInfo = {
+                            currentService = it
+                            isEditing = true
+                            showDialog = true
+                        }
+                    )
+                }
+            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.BottomEnd
+        ) {
             Button(
                 onClick = {
                     currentService = null
@@ -43,58 +91,13 @@ fun ServiceListScreen() {
                 },
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(8.dp),
+                    .padding(16.dp),
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary)
             ) {
                 Text("Добавить сервис", color = Color.White)
             }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Список сервисов",
-                    style = MaterialTheme.typography.h5,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-                LazyColumn(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    items(services) { service ->
-                        ServiceItem(
-                            service = service,
-                            onInfo = {
-                                currentService = it
-                                isEditing = true
-                                showDialog = true
-                            }
-                        )
-                    }
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.BottomEnd
-            ) {
-                Button(
-                    onClick = {
-                        currentService = null
-                        isEditing = false
-                        showDialog = true
-                    },
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier
-                        .padding(16.dp),
-                    colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary)
-                ) {
-                    Text("Добавить сервис", color = Color.White)
-                }
-            }
         }
+
     }
 
     if (showDialog) {
