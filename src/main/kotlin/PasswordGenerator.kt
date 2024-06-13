@@ -83,14 +83,20 @@ fun PasswordGenerator(
                 }
                 Button(
                     onClick = {
-                        val generatedPassword = generatePassword(useSpecial, useDigits, useUppercase, useLowercase, length)
+                        val generatedPassword =
+                            generatePassword(useSpecial, useDigits, useUppercase, useLowercase, length)
                         onGenerateComplete(generatedPassword)
                     },
+                    shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Сгенерировать")
                 }
-                Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = onBack,
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text("Назад")
                 }
             }
@@ -98,7 +104,13 @@ fun PasswordGenerator(
     }
 }
 
-fun generatePassword(useSpecial: Boolean, useDigits: Boolean, useUppercase: Boolean, useLowercase: Boolean, length: Int): String {
+fun generatePassword(
+    useSpecial: Boolean,
+    useDigits: Boolean,
+    useUppercase: Boolean,
+    useLowercase: Boolean,
+    length: Int
+): String {
     val charPool = mutableListOf<Char>()
     if (useSpecial) charPool.addAll("!@#$%^&*()_+-=[]{}|;:,.<>?".toList())
     if (useDigits) charPool.addAll('0'..'9')
